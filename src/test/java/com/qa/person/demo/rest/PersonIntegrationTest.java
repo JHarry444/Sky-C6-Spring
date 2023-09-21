@@ -15,7 +15,9 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -69,5 +71,34 @@ public class PersonIntegrationTest {
         this.mvc.perform(MockMvcRequestBuilders.get("/get/1"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json(resBody));
+    }
+
+    @Test
+    void testReadAll() throws Exception {
+        String resBody = this.mapper.writeValueAsString(List.of(new Person(1, "Barry", 40, "Plumber")));
+        this.mvc.perform(MockMvcRequestBuilders.get("/getAll"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json(resBody));
+    }
+
+    @Test
+    void testUpdate() throws Exception {
+        Person updated = new Person(1, "Larry", 30, "Plumber");
+        String resBody = this.mapper.writeValueAsString(updated);
+
+        this.mvc.perform(patch("/update")
+                        .queryParam("id", String.valueOf(updated.getId()))
+                        .queryParam("name", updated.getName())
+                        .queryParam("age",  String.valueOf(updated.getAge()))
+                        .queryParam("jobTitle", updated.getJobTitle()))
+                .andExpect(status().isOk())
+                .andExpect(content().json(resBody));
+    }
+
+    @Test
+    void testRemove() throws Exception{
+
+        this.mvc.perform(delete("/remove/1")).andExpect(status().isOk())
+                .andExpect(content().string("Person removed"));
     }
 }
